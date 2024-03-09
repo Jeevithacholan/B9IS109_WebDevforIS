@@ -1,25 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ product.name }} Details</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Product details</title>
+    <!-- Link To CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Box Icons -->
+    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+    <!--Bootstrap  stylesheet-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" crossorigin="anonymous">
 </head>
+
 <body>
-    <div class="container">
-        <h1>{{ product.name }} Details</h1>
-        <div class="card">
-            <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}">
-            <div class="card-body">
-                <h5 class="card-title">{{ product.name }}</h5>
-                <p class="card-text">{{ product.description }}</p>
-                <p class="card-text">Price: ${{ product.price }}</p>
-                <p class="card-text">Dimensions: {{ product.dimensions }}</p>
-                <p class="card-text">Weight: {{ product.weight }}</p>
-                <p class="card-text">Color: {{ product.color }}</p>
-            </div>
+    <!-- Header -->
+    <header>
+        <!-- Nav -->
+        <div class="nav container">
+            <!-- Logo -->
+            <a href="/" class="logo">Gemstone <span>Paradise</span></a>
+        </div>
+
+    </header>
+    <!-- Post Content -->
+    <section class="post-header">
+    <div class="header-content post-container">
+        <a href="/" class="back-home">Back To Home</a>
+        <input type="hidden" id="product_id" name="product_id" value="{{ product._id }}">
+        <h1 class="header-title">{{ product.name }}</h1>
+        <button class="pre-btn"><img src="{{ url_for('static', filename='img/arrow.png') }}" alt=""></button>
+        <button class="nxt-btn"><img src="{{ url_for('static', filename='img/arrow.png') }}" alt=""></button>
+        <span class="discount-tag">SALE: 50% off</span>
+        <img src="{{ url_for('static', filename=product.img) }}" class="product-thumb" alt="">
+        <div class="product-info">
+            <span class="price">€{{ product.price }}</span><span class="actual-price">€{{ product.actualPrice }}</span>
+            <button type="button" class="card-btn" id="btn" onclick="triggerBtnClick('{{ product._id }}')">Reserve</button>
         </div>
     </div>
+</div>
+    </section>
+
+    <!-- Posts -->
+    <section class="post-content post-container">
+        <h2 class="sub-heading">{{ product.name }}</h2>
+        <p class="post-text">{{ product.description }}</p>
+    </section>
+    <!-- Share -->
+    <div class="share post-container">
+        <span class="share-title">Share this product</span>
+        <div class="social">
+            <a href="#"><i class='bx bxl-facebook'></i></a>
+            <a href="#"><i class='bx bxl-twitter'></i></a>
+            <a href="#"><i class='bx bxl-instagram'></i></a>
+            <a href="#"><i class='bx bxl-linkedin'></i></a>
+        </div>
+    </div>
+    <!-- Footer -->
+    <div class="footer container">
+        <p>&#169; Gemstone Paradise - All Right Reserved</p>
+    </div>
+
+    <!-- JQuery Link -->
+    <script src="https://code.jquery.com/jquery-3.6.0.js"
+        integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <!-- Link To JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+<script>
+    $(document).ready(function () {
+    // Fetch next product from the database
+    document.querySelector('.nxt-btn').addEventListener('click', function() {
+        var productId = document.getElementById('product_id').value;
+        fetch('/nextProduct/' + productId)
+            .then(response => response.json())
+            .then(data => {
+                window.location.href = '/product/' + data.product_id;
+            })
+            .catch(error => console.error('Error fetching next product:', error));
+    });
+
+    // Fetch previous product from the database
+    document.querySelector('.pre-btn').addEventListener('click', function() {
+        var productId = document.getElementById('product_id').value;
+        fetch('/prevProduct/' + productId)
+            .then(response => response.json())
+            .then(data => {
+                window.location.href = '/product/' + data.product_id;
+            })
+            .catch(error => console.error('Error fetching previous product:', error));
+    });
+});
+</script>
+
 </body>
+
 </html>
