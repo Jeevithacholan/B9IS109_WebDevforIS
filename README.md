@@ -1,4 +1,4 @@
-# Jewelry Store Web App
+# Gemstone Paradise Web App
 
 This is a basic E-commerce web application for selling jewelry items. The application is built using Python with Flask for the backend, MongoDB for the database, and Bootstrap with JavaScript for the frontend.
 
