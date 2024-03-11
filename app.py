@@ -1,34 +1,48 @@
 import os
 from flask import Flask, render_template
-from flask_pymongo import PyMongo
 from bson import ObjectId
 from flask import jsonify
 from flask import request, redirect, url_for, flash, session
+from pymongo import MongoClient
+from pymongo.database import Database
+from pymongo.collection import Collection
 
 app = Flask(__name__)
-app.secret_key = 'myPassword@1'  # Set a secret key for session management
-app.config['MONGO_URI'] = 'mongodb://localhost:27017/jee'  # Update to your database name
-mongo = PyMongo(app)
+app.secret_key = 'my1Password@1'  # Set a secret key for session management
+
+
+def get_mongo_uri():
+    if 'WEBSITE_INSTANCE_ID' not in os.environ:
+        # Running locally
+        return MongoClient('localhost', 27017)
+    else:
+        # Use the connection string for Cosmos DB in Azure
+        azureDB = 'mongodb+srv://jee:my1Password@gemstoneparadise.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000'
+        return MongoClient(azureDB)
+
+
+mongo_client = get_mongo_uri()
+database: Database = mongo_client.get_database("jee")
+collection: Collection = database.get_collection("testdata")
 
 
 @app.route('/')
 def index():
-    products = mongo.db.testdata.find()  # Update to your collection name
+    products = database.testdata.find().sort('id')  # Gets all records from DB
     return render_template('index.html', products=products)
 
 
 @app.route('/product/<string:product_id>')
 def product_detail(product_id):
-    product = mongo.db.testdata.find_one({'_id': ObjectId(product_id)})  # Convert product_id to ObjectId
-    print(product)
+    product = database.testdata.find_one({'_id': ObjectId(product_id)})  # Convert product_id to ObjectId
     return render_template('product_detail.html', product=product)
 
 
 @app.route('/nextProduct/<string:product_id>')
 def next_product(product_id):
-    current_product = mongo.db.testdata.find_one({'_id': ObjectId(product_id)})
+    current_product = database.testdata.find_one({'_id': ObjectId(product_id)})
     if current_product:
-        next_product = mongo.db.testdata.find_one({'_id': {'$gt': ObjectId(product_id)}})
+        next_product = database.testdata.find_one({'id': current_product['id'] + 1})
         if next_product:
             return jsonify({'product_id': str(next_product['_id'])})
     return jsonify({'product_id': product_id})  # Return the current product's id if no next product is found
@@ -36,9 +50,9 @@ def next_product(product_id):
 
 @app.route('/prevProduct/<string:product_id>')
 def prev_product(product_id):
-    current_product = mongo.db.testdata.find_one({'_id': ObjectId(product_id)})
+    current_product = database.testdata.find_one({'_id': ObjectId(product_id)})
     if current_product:
-        prev_product = mongo.db.testdata.find_one({'_id': {'$lt': ObjectId(product_id)}})
+        prev_product = database.testdata.find_one({'id': current_product['id'] - 1})
         if prev_product:
             return jsonify({'product_id': str(prev_product['_id'])})
     return jsonify({'product_id': product_id})  # Return the current product's id if no previous product is found
@@ -46,15 +60,13 @@ def prev_product(product_id):
 
 @app.route('/reservation/<string:product_id>')
 def reservation_form(product_id):
-    product = mongo.db.testdata.find_one({'_id': ObjectId(product_id)})  # Convert product_id to ObjectId
-    print(product)
+    product = database.testdata.find_one({'_id': ObjectId(product_id)})  # Convert product_id to ObjectId
     return render_template('reservationForm.html', product=product)
 
 
 @app.route('/reservationConfirmation/<string:product_id>')
 def reservation_confirmation(product_id):
-    product = mongo.db.testdata.find_one({'_id': ObjectId(product_id)})  # Convert product_id to ObjectId
-    print(product)
+    product = database.testdata.find_one({'_id': ObjectId(product_id)})  # Convert product_id to ObjectId
     return render_template('reservation_confirmation.html', product=product)
 
 
@@ -64,10 +76,11 @@ def admin_login():
     password = request.form.get('adminPassword')
 
     # Validate credentials against adminlogin collection in MongoDB
-    admin = mongo.db.adminlogin.find_one({'username': username, 'password': password})
+    admin = database.adminlogin.find_one({'username': username, 'password': password})
     if admin:
         # Admin credentials are valid, store user ID in session
         session['user_id'] = str(admin['_id'])
+        session['admin_logged_in'] = True
         return redirect(url_for('inventory_management'))  # Change to your actual inventory management endpoint
     else:
         # Admin credentials are invalid, redirect back to the login page with an error message
@@ -75,11 +88,18 @@ def admin_login():
         return redirect(url_for('index'))  # Change to your actual index page
 
 
+@app.route('/logout', methods=['POST'])
+def logout():
+    # Clear the session
+    session.clear()
+    return redirect(url_for('index'))  # Redirect to the index page or any other page after logout
+
+
 # Protect the inventory management route with authentication
-@app.route('/inventorymanagement')
+@app.route('/inventorymanagement', methods=['GET', 'POST'])
 def inventory_management():
     if 'user_id' in session:
-        products = mongo.db.testdata.find()
+        products = database.testdata.find().sort('id')
         return render_template('inventorymanagement.html', products=products)
     else:
         flash('Login as Admin to access Inventory Management', 'error')
@@ -106,8 +126,8 @@ def add_product():
             imgPath = None
 
         # Insert the new product record into the database
-        mongo.db.testdata.insert_one({
-            'id': mongo.db.testdata.count_documents({}) + 1,
+        database.testdata.insert_one({
+            'id': database.testdata.count_documents({}) + 1,
             'category': category,
             'name': name,
             'price': price,
@@ -129,46 +149,49 @@ def update_records():
         product_ids = [key.split('_')[1] for key in request.form.keys() if key.startswith('category_')]
         records_updated = None
         for product_id in product_ids:
-            product = mongo.db.testdata.find_one({'_id': ObjectId(product_id)})
+            product = database.testdata.find_one({'_id': ObjectId(product_id)})
             if product:
                 if request.form.get(f'checkbox_{product_id}') == 'on':
                     if float(request.form.get(f'price_{product_id}')) != product['price']:
-                        mongo.db.testdata.update_one({'_id': ObjectId(product_id)}, {
+                        database.testdata.update_one({'_id': ObjectId(product_id)}, {
                             '$set': {'price': float(request.form.get(f'price_{product_id}'))}})
                         records_updated = True
                     # Check if actual price has changed
                     if float(request.form.get(f'actual_price_{product_id}')) != product['actualPrice']:
-                        mongo.db.testdata.update_one({'_id': ObjectId(product_id)}, {
+                        database.testdata.update_one({'_id': ObjectId(product_id)}, {
                             '$set': {'actualPrice': float(request.form.get(f'actual_price_{product_id}'))}})
                         records_updated = True
                     # Check if category has changed
                     if request.form.get(f'category_{product_id}') != product['category']:
-                        mongo.db.testdata.update_one({'_id': ObjectId(product_id)},
+                        print(product)
+                        database.testdata.update_one({'_id': ObjectId(product_id)},
                                                      {'$set': {'category': request.form.get(f'category_{product_id}')}})
                         records_updated = True
                     # Check if name has changed
                     if request.form.get(f'product_name_{product_id}') != product['name']:
-                        print(request.form.get(f'product_name_{product_id}'))
-                        mongo.db.testdata.update_one({'_id': ObjectId(product_id)},
+                        print('Product Name from Browser: ' + str(request.form.get(f'product_name_{product_id}')))
+                        print(product)
+                        print('Product Name from DB: ' + str(product['name']))
+                        database.testdata.update_one({'_id': ObjectId(product_id)},
                                                      {'$set': {'name': request.form.get(f'product_name_{product_id}')}})
                         records_updated = True
                     # Check if description has changed
                     if request.form.get(f'product_description_{product_id}') != product['description']:
-                        mongo.db.testdata.update_one({'_id': ObjectId(product_id)},
+                        database.testdata.update_one({'_id': ObjectId(product_id)},
                                                      {'$set': {'description': request.form.get(
                                                          f'product_description_{product_id}')}})
                         records_updated = True
                     # Check if delete option has been ticked
                     if request.form.get(f'delete_{product_id}') == 'on':
-                        mongo.db.testdata.delete_one({'_id': ObjectId(product_id)})
+                        database.testdata.delete_one({'_id': ObjectId(product_id)})
                         records_updated = True
 
         if not records_updated:
-            flash('Please select at least one record to update.', 'success')
+            flash('Please select/modify at least one record to update.', 'success')
         else:
             flash('Records updated successfully', 'success')
     return redirect(url_for('inventory_management'))
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

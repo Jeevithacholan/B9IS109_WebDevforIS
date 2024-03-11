@@ -1,13 +1,37 @@
 [{
   "_id": {
+    "$oid": "65e964527e6aa955b366d758"
+  },
+  "id": 7,
+  "category": "Engagement Ring",
+  "name": " Diamond Rose 18k",
+  "price": 69,
+  "actualPrice": 138,
+  "description": "A classic round brilliant cut diamond and with a plain goldband creates the ultimate striking and simple engagement ring",
+  "img": "img/benchbar.jpg"
+},
+{
+  "_id": {
+    "$oid": "65eba5e3d868d0b10dc38642"
+  },
+  "id": 8,
+  "category": "Wedding Ring",
+  "name": "Slim Round Solitaire",
+  "price": 10,
+  "actualPrice": 20,
+  "description": "Platinum solitaire engagement ring with a round brilliant cut Laboratory Grown Diamond in a classic four claw setting",
+  "img": "img/sample.jpg"
+},
+{
+  "_id": {
     "$oid": "65e964527e6aa955b366d752"
   },
   "id": 1,
   "category": "Wedding Ring",
-  "name": " Classic Solitaire 925",
-  "price": 12,
-  "actualPrice": 21,
-  "description": "Unleash the power within with our Hit Boxing Pro Bag – a fitness essential designed for warriors at every level.",
+  "name": " Classic Solitaire 924",
+  "price": 33,
+  "actualPrice": 66,
+  "description": "A classic round brilliant cut diamond and with a plain goldband creates the ultimate striking and simple engagement ring",
   "img": "img/boxing1.jpg"
 },
 {
@@ -15,11 +39,11 @@
     "$oid": "65e964527e6aa955b366d753"
   },
   "id": 2,
-  "category": "Engagement Ring",
+  "category": "Eternity Ring",
   "name": " Ferry Diamond 14kt",
-  "price": 12,
-  "actualPrice": 22,
-  "description": "Experience the future of fitness with our cutting-edge treadmill – designed for performance into your active lifestyle.",
+  "price": 28,
+  "actualPrice": 56,
+  "description": "A beautiful 1.03ct round brilliant solitaire ring with a touch of yellow gold in the band",
   "img": "img/run.jpg"
 },
 {
@@ -27,11 +51,11 @@
     "$oid": "65e964527e6aa955b366d754"
   },
   "id": 3,
-  "category": "Wedding Ring",
+  "category": "Engagement Ring",
   "name": " Natural Yellow Sapphire",
-  "price": 10,
-  "actualPrice": 20,
-  "description": "Elevate your fitness routine with the Bowflex Max Pro – a revolutionary exercise machine designed for maximum results in minimal time.",
+  "price": 14,
+  "actualPrice": 28,
+  "description": "White Gold Engagement Ring 3 Round Brilliant Cut Laboratory Grown Diamonds Each In A Four Claw Setting",
   "img": "img/blowflex.jpg"
 },
 {
@@ -41,56 +65,32 @@
   "id": 4,
   "category": "Engagement Ring",
   "name": " Real Diamond 18kt",
-  "price": 10,
+  "price": 15,
   "actualPrice": 30,
-  "description": "Equip yourself for greatness with our top-tier boxing gear – a fusion of durability, style, and functionality.",
+  "description": "18ct Yellow Gold & Platinum Solitaire Engagement Ring With A Round Brilliant Cut, Laboratory Grown Diamond In A Four Claw Setting",
   "img": "img/boxing2.jpg"
-},
-{
-  "_id": {
-    "$oid": "65e964527e6aa955b366d756"
-  },
-  "id": 5,
-  "category": "Engagement Ring",
-  "name": " Candere Yellow Gold",
-  "price": 10,
-  "actualPrice": 40,
-  "description": "Elevate your boxing experience with equipment that champions trust – because your journey to victory!.",
-  "img": "img/boxing3.jpg"
 },
 {
   "_id": {
     "$oid": "65e964527e6aa955b366d757"
   },
   "id": 6,
-  "category": "Wedding Ring",
+  "category": "Eternity Ring",
   "name": " Solitaire Style 14kt",
-  "price": 10,
-  "actualPrice": 20,
-  "description": "Body Rider Handlebar Workout Machine combines cardio and strength training for a comprehensive exercise experience.",
+  "price": 45,
+  "actualPrice": 90,
+  "description": "Elegant, this diamond wishbone ring is a stunningly elegant and eye catching fashion accessory",
   "img": "img/handleg.jpg"
 },
 {
   "_id": {
-    "$oid": "65e964527e6aa955b366d758"
+    "$oid": "65e964527e6aa955b366d756"
   },
-  "id": 7,
-  "category": "Eternity Ring",
-  "name": " Diamond Rose 18k",
-  "price": 10,
-  "actualPrice": 60,
-  "description": "Unleash your full potential with BenchBar – where form meets function in every lift.",
-  "img": "img/benchbar.jpg"
-},
-{
-  "_id": {
-    "$oid": "65eba5e3d868d0b10dc38642"
-  },
-  "id": 8,
+  "id": 5,
   "category": "Wedding Ring",
-  "name": "travellerV1",
+  "name": " Candere Yellow Gold",
   "price": 25,
-  "actualPrice": 45,
-  "description": "234324",
-  "img": "img/sample.jpg"
+  "actualPrice": 50,
+  "description": "Super Slim Ring with a Round Brilliant Cut Centre Diamond Set in a Four Claw Setting",
+  "img": "img/boxing3.jpg"
 }]
