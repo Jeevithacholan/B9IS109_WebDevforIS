@@ -17,7 +17,7 @@ def get_mongo_uri():
         return MongoClient('localhost', 27017)
     else:
         # Use the connection string for Cosmos DB in Azure
-        azureDB = 'mongodb+srv://jee:my1Password@gemstoneparadise.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000'
+        azureDB = 'mongodb+srv://jee:my1Password@gemstone.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000'
         return MongoClient(azureDB)
 
 
