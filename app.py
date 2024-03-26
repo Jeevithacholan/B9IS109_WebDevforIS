@@ -6,9 +6,28 @@ from flask import request, redirect, url_for, flash, session
 from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.collection import Collection
+from flask import Flask, redirect, url_for, session
+from flask_oauthlib.client import OAuth
+from functools import wraps
+
 
 app = Flask(__name__)
 app.secret_key = 'my1Password@1'  # Set a secret key for session management
+oauth = OAuth(app)
+
+google = oauth.remote_app(
+    'google',
+    consumer_key='845708482790-a8adqo54svoo88872m5cn4appsdus54p.apps.googleusercontent.com',
+    consumer_secret='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',
+    request_token_params={
+        'scope': 'email',
+    },
+    base_url='https://www.googleapis.com/oauth2/v1/',
+    request_token_url=None,
+    access_token_method='POST',
+    access_token_url='https://accounts.google.com/o/oauth2/token',
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+)
 
 
 def get_mongo_uri():
@@ -16,7 +35,7 @@ def get_mongo_uri():
         # Running locally
         return MongoClient('localhost', 27017)
     else:
-        # Use the below connection string for Cosmos DB in Azure
+        # Use the connection string for Cosmos DB in Azure
         azureDB = 'mongodb+srv://jee:my1Password@gemstone.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000'
         return MongoClient(azureDB)
 
@@ -30,6 +49,32 @@ collection: Collection = database.get_collection("testdata")
 def index():
     products = database.testdata.find().sort('id')  # Gets all records from DB
     return render_template('index.html', products=products)
+
+
+@app.route('/login')
+def login():
+    return google.authorize(callback=url_for('authorized', _external=True))
+
+
+@app.route('/login/authorized')
+def authorized():
+    resp = google.authorized_response()
+    if resp is None or resp.get('access_token') is None:
+        return 'Access denied: reason={} error={}'.format(
+            request.args['error_reason'],
+            request.args['error_description']
+        )
+    session['google_token'] = (resp['access_token'], '')
+    user_info = google.get('userinfo')
+    session['admin_logged_in'] = True
+    me = google.get('userinfo')
+    flash('Logged in as ' + user_info.data['email'], 'error')
+    return redirect(url_for('inventory_management'))
+
+
+@google.tokengetter
+def get_google_oauth_token():
+    return session.get('google_token')
 
 
 @app.route('/product/<string:product_id>')
@@ -88,22 +133,32 @@ def admin_login():
         return redirect(url_for('index'))  # Change to your actual index page
 
 
+# Define a decorator to check if the user is authenticated
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'google_token' not in session and 'user_id' not in session:
+            flash('Login as Admin to access Inventory Management', 'error')
+            return redirect(url_for('index'))  # Redirect to the index page if not authenticated
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 @app.route('/logout', methods=['POST'])
+@login_required
 def logout():
     # Clear the session
+    session.pop('google_token', None)
     session.clear()
     return redirect(url_for('index'))  # Redirect to the index page or any other page after logout
 
 
 # Protect the inventory management route with authentication
 @app.route('/inventorymanagement', methods=['GET', 'POST'])
+@login_required  # Apply the login_required decorator to this route
 def inventory_management():
-    if 'user_id' in session:
-        products = database.testdata.find().sort('id')
-        return render_template('inventorymanagement.html', products=products)
-    else:
-        flash('Login as Admin to access Inventory Management', 'error')
-        return redirect(url_for('index'))  # Change to your actual index page
+    products = database.testdata.find().sort('id')
+    return render_template('inventorymanagement.html', products=products)
 
 
 @app.route('/add_product', methods=['POST'])
@@ -195,3 +250,4 @@ def update_records():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
